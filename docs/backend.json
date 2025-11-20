@@ -1,0 +1,131 @@
+{
+  "entities": {
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user of the NutriSnap application.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the User entity."
+        },
+        "email": {
+          "type": "string",
+          "description": "User's email address.",
+          "format": "email"
+        },
+        "googleId": {
+          "type": "string",
+          "description": "User's unique identifier from Google (if they signed up with Google).  Null if they did not."
+        }
+      },
+      "required": [
+        "id",
+        "email"
+      ]
+    },
+    "FoodEntry": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "FoodEntry",
+      "type": "object",
+      "description": "Represents a single food entry in the user's food log.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the FoodEntry entity."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Reference to User. (Relationship: User 1:N FoodEntry)"
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "Timestamp of when the food entry was created.",
+          "format": "date-time"
+        },
+        "foodDescription": {
+          "type": "string",
+          "description": "Description of the food consumed."
+        },
+        "calories": {
+          "type": "number",
+          "description": "Total calories for the food entry."
+        },
+        "protein": {
+          "type": "number",
+          "description": "Protein content (in grams) for the food entry."
+        },
+        "carbs": {
+          "type": "number",
+          "description": "Carbohydrate content (in grams) for the food entry."
+        },
+        "fats": {
+          "type": "number",
+          "description": "Fat content (in grams) for the food entry."
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "URL of the food image uploaded by the user, if any."
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "timestamp",
+        "foodDescription",
+        "calories",
+        "protein",
+        "carbs",
+        "fats"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores user profile information. The 'userId' parameter corresponds to the Firebase Authentication UID.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user, matching their Firebase Auth UID."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/users/{userId}/foodEntries/{foodEntryId}",
+        "definition": {
+          "entityName": "FoodEntry",
+          "schema": {
+            "$ref": "#/backend/entities/FoodEntry"
+          },
+          "description": "Stores food entry data for a specific user.  Path-based ownership ensures only the user can access their food entries.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique identifier for the user."
+            },
+            {
+              "name": "foodEntryId",
+              "description": "The unique identifier for the food entry."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore structure is designed to ensure Authorization Independence, support QAPs, and maintain data clarity. User data and food entries are stored in separate collections, adhering to Structural Segregation.  User authentication is handled via Firebase Authentication. Path-based ownership is used for `FoodEntry` documents under each user, ensuring that only the user can access their data. This design eliminates the need for `get()` calls in security rules, simplifying rules and improving performance. The schema incorporates explicit state modeling and predictable naming conventions for improved debuggability."
+  }
+}

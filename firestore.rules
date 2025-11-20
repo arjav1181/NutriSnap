@@ -1,0 +1,102 @@
+/**
+ * Core Philosophy: This ruleset enforces a strict user-ownership model.
+ * All user-generated content is private and can only be accessed by the
+ * user who created it. There is no concept of public data or shared access
+ * between users.
+ *
+ * Data Structure: All data is hierarchically organized under the /users/{userId}
+ * path. The root document, /users/{userId}, stores the user's profile.
+ * All other user-specific data, such as food entries, is stored in
+ * subcollections under this path (e.g., /users/{userId}/foodEntries).
+ *
+ * Key Security Decisions:
+ * - User Isolation: A user can only ever read or write data within their own
+ *   data tree (/users/{their_own_userId}/...). Access to other users' data
+ *   is strictly forbidden.
+ * - No Global Access: Listing all users from the top-level /users
+ *   collection is explicitly disallowed to protect user privacy.
+ * - Path-Based Security: Ownership is determined by the {userId} wildcard in
+ *   the document path, which must match the authenticated user's UID. This is
+ *   a highly performant and secure pattern that avoids extra database reads.
+ *
+ * Denormalization for Authorization: The structure itself acts as the primary
+ * form of denormalization for authorization. By nesting a user's `foodEntries`
+ * inside their own `/users/{userId}` path, we don't need to perform any extra
+ * `get()` calls to check for ownership. For relational integrity, we also
+ * enforce that any document created within a user's path must contain an
+ * internal field (e.g., `userId`) that matches the path's `{userId}`.
+ *
+ * Structural Segregation: The data model naturally segregates each user's
+ * data into their own document tree, providing strong security boundaries
+ * without needing separate public/private collections.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions for readable and reusable logic
+    
+    /**
+     * Checks if a user is authenticated.
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    /**
+     * Checks if the currently authenticated user's UID matches the given userId.
+     * This is the foundation of the user-ownership model.
+     */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+    
+    /**
+     * Checks if the document being accessed already exists in Firestore.
+     * Used for safe update and delete operations.
+     */
+    function isExistingDoc() {
+      return resource != null;
+    }
+    
+    /**
+     * A composite check for state-changing operations (update, delete),
+     * ensuring the user is the owner AND the document actually exists.
+     */
+    function isExistingOwner(userId) {
+      return isOwner(userId) && isExistingDoc();
+    }
+    
+    /**
+     * @description   Manages user profile documents.
+     * @path          /users/{userId}
+     * @allow         (create) A new user can create their own profile document after signing up.
+     * @allow         (get, update, delete) An existing user can read, update, or delete their own profile.
+     * @deny          (list) A user cannot list all other users in the system.
+     * @deny          (get, update, delete) A user cannot access another user's profile.
+     * @principle     Restricts access to a user's own data tree and allows for self-creation of a profile.
+     */
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow list: if false; // Disallow listing all users for privacy
+      allow create: if isOwner(userId) && request.resource.data.id == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
+      allow delete: if isExistingOwner(userId);
+    }
+    
+    /**
+     * @description   Secures a user's private food log entries.
+     * @path          /users/{userId}/foodEntries/{foodEntryId}
+     * @allow         (create, get, list, update, delete) A user can perform all operations on their own food entries.
+     * @deny          (create, get, list, update, delete) A user cannot access or modify another user's food entries.
+     * @principle     Enforces strict path-based ownership for all documents in this subcollection.
+     */
+    match /users/{userId}/foodEntries/{foodEntryId} {
+      allow get: if isOwner(userId);
+      allow list: if isOwner(userId);
+      allow create: if isOwner(userId) && request.resource.data.userId == userId;
+      allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
+      allow delete: if isExistingOwner(userId);
+    }
+  }
+}
