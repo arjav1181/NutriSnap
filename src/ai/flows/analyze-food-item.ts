@@ -42,11 +42,7 @@ export async function analyzeFoodItem(input: AnalyzeFoodItemInput): Promise<Anal
   return analyzeFoodItemFlow(input);
 }
 
-const prompt = ai.definePrompt({
-  name: 'analyzeFoodItemPrompt',
-  input: {schema: AnalyzeFoodItemInputSchema},
-  output: {schema: AnalyzeFoodItemOutputSchema},
-  prompt: `You are a world-class nutrition expert with specialized knowledge in international cuisines, including a deep understanding of Indian food.
+const basePrompt = `You are a world-class nutrition expert with specialized knowledge in international cuisines, including a deep understanding of Indian food.
 
 Your task is to identify all distinct food items from the provided source and return their estimated nutritional information.
 
@@ -58,16 +54,30 @@ When analyzing Indian food, be mindful of the following:
 For each item, estimate the quantity (e.g., "1 bowl of dal tadka", "2 pieces of paneer tikka"), and then provide the nutritional information.
 
 If the source is a text description with multiple items, identify each one. If it is an image, identify all food items present.
+`;
 
-{{#if (startsWith source "data:")}}
-  Image: {{media url=source}}
-{{else}}
-  Description: "{{{source}}}"
-{{/if}}
+const textPrompt = ai.definePrompt({
+  name: 'analyzeFoodItemTextPrompt',
+  input: {schema: AnalyzeFoodItemInputSchema},
+  output: {schema: AnalyzeFoodItemOutputSchema},
+  prompt: `${basePrompt}
+Description: "{{{source}}}"
 
 Respond in JSON format.
 `,
 });
+
+const imagePrompt = ai.definePrompt({
+  name: 'analyzeFoodItemImagePrompt',
+  input: {schema: AnalyzeFoodItemInputSchema},
+  output: {schema: AnalyzeFoodItemOutputSchema},
+  prompt: `${basePrompt}
+Image: {{media url=source}}
+
+Respond in JSON format.
+`,
+});
+
 
 const analyzeFoodItemFlow = ai.defineFlow(
   {
@@ -76,6 +86,8 @@ const analyzeFoodItemFlow = ai.defineFlow(
     outputSchema: AnalyzeFoodItemOutputSchema,
   },
   async input => {
+    const isImage = input.source.startsWith('data:');
+    const prompt = isImage ? imagePrompt : textPrompt;
     const {output} = await prompt(input);
     return output!;
   }
