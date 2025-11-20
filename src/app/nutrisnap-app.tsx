@@ -40,9 +40,11 @@ export default function NutriSnapApp() {
     
     const foodEntries: FoodEntry[] | null = useMemo(() => {
         if (!foodEntriesData) return null;
-        return foodEntriesData.map(entry => ({
-            ...entry,
-            createdAt: entry.createdAt.toDate().toISOString(),
+        return foodEntriesData
+            .filter(entry => !!entry.createdAt) // Ensure createdAt is not null
+            .map(entry => ({
+                ...entry,
+                createdAt: entry.createdAt.toDate().toISOString(),
         }));
     }, [foodEntriesData]);
 
