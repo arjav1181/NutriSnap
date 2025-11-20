@@ -15,9 +15,13 @@
           "description": "User's email address.",
           "format": "email"
         },
-        "googleId": {
+        "displayName": {
           "type": "string",
-          "description": "User's unique identifier from Google (if they signed up with Google).  Null if they did not."
+          "description": "User's display name."
+        },
+        "photoURL": {
+            "type": "string",
+            "description": "URL of the user's profile picture."
         }
       },
       "required": [
@@ -39,12 +43,12 @@
           "type": "string",
           "description": "Reference to User. (Relationship: User 1:N FoodEntry)"
         },
-        "timestamp": {
+        "createdAt": {
           "type": "string",
           "description": "Timestamp of when the food entry was created.",
           "format": "date-time"
         },
-        "foodDescription": {
+        "name": {
           "type": "string",
           "description": "Description of the food consumed."
         },
@@ -72,8 +76,8 @@
       "required": [
         "id",
         "userId",
-        "timestamp",
-        "foodDescription",
+        "createdAt",
+        "name",
         "calories",
         "protein",
         "carbs",
@@ -84,7 +88,7 @@
   "auth": {
     "providers": [
       "password",
-      "anonymous"
+      "google.com"
     ]
   },
   "firestore": {

@@ -92,11 +92,7 @@ service cloud.firestore {
      * @principle     Enforces strict path-based ownership for all documents in this subcollection.
      */
     match /users/{userId}/foodEntries/{foodEntryId} {
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
-      allow create: if isOwner(userId) && request.resource.data.userId == userId;
-      allow update: if isExistingOwner(userId) && request.resource.data.userId == resource.data.userId;
-      allow delete: if isExistingOwner(userId);
+      allow read, write: if isOwner(userId);
     }
   }
 }
