@@ -9,7 +9,7 @@ import { addFoodFromText, addFoodFromImage } from '@/app/actions';
 import { useToast } from "@/hooks/use-toast";
 import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
 import { collection, doc, serverTimestamp, writeBatch } from 'firebase/firestore';
-import { addDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import LoadingSpinner from '@/components/loading-spinner';
@@ -25,7 +25,7 @@ export default function NutriSnapApp() {
       [firestore, user]
     );
 
-    const { data: foodEntries, isLoading: isLoadingEntries, error: entriesError } = useCollection<FoodEntryData>(foodEntriesRef);
+    const { data: foodEntriesData, isLoading: isLoadingEntries, error: entriesError } = useCollection<FoodEntryData>(foodEntriesRef);
 
     useEffect(() => {
         if(entriesError){
@@ -37,29 +37,35 @@ export default function NutriSnapApp() {
             });
         }
     }, [entriesError, toast]);
+    
+    const foodEntries: FoodEntry[] | null = useMemo(() => {
+        if (!foodEntriesData) return null;
+        return foodEntriesData.map(entry => ({
+            ...entry,
+            createdAt: entry.createdAt.toDate().toISOString(),
+        }));
+    }, [foodEntriesData]);
 
 
     const handleAddFoodEntries = async (newEntriesData: Omit<FoodEntry, 'id' | 'userId' | 'createdAt'>[]) => {
-        if (!firestore || !user) return;
+        if (!firestore || !user || !foodEntriesRef) return;
 
         const batch = writeBatch(firestore);
-        const entriesToAdd: FoodEntry[] = [];
-
+        
         newEntriesData.forEach((item) => {
-            const newDocRef = doc(foodEntriesRef!);
-            const newEntry: FoodEntry = {
+            const newDocRef = doc(foodEntriesRef);
+            const newEntry = {
                 ...item,
                 id: newDocRef.id,
                 userId: user.uid,
-                createdAt: new Date().toISOString(),
+                createdAt: serverTimestamp(), // Use server timestamp for writing
             };
-            batch.set(newDocRef, { ...newEntry, createdAt: serverTimestamp() });
-            entriesToAdd.push(newEntry);
+            batch.set(newDocRef, newEntry);
         });
 
         try {
             await batch.commit();
-            const message = entriesToAdd.length > 1 ? `${entriesToAdd.length} items have been added.` : `${entriesToAdd[0].name} has been added.`;
+            const message = newEntriesData.length > 1 ? `${newEntriesData.length} items have been added.` : `${newEntriesData[0].name} has been added.`;
             toast({ title: "Food Added", description: message });
         } catch (error) {
             console.error("Error adding food entries: ", error);
@@ -92,7 +98,7 @@ export default function NutriSnapApp() {
         toast({ title: 'Entry deleted' });
     }
 
-    if (isUserLoading || isLoadingEntries) {
+    if (isUserLoading || (user && isLoadingEntries)) {
         return (
             <div className="flex justify-center items-center min-h-[calc(100vh-8rem)]">
                 <LoadingSpinner className="h-10 w-10 text-primary" />
@@ -127,13 +133,19 @@ export default function NutriSnapApp() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const todaysEntries = sortedEntries.filter(entry => new Date(entry.createdAt) >= today);
+    const todaysEntries = sortedEntries.filter(entry => {
+        const entryDate = new Date(entry.createdAt);
+        return entryDate >= today;
+    });
 
     const tenDaysAgo = new Date();
     tenDaysAgo.setDate(tenDaysAgo.getDate() - 10);
     tenDaysAgo.setHours(0, 0, 0, 0);
 
-    const recentEntries = sortedEntries.filter(entry => new Date(entry.createdAt) >= tenDaysAgo);
+    const recentEntries = sortedEntries.filter(entry => {
+        const entryDate = new Date(entry.createdAt);
+        return entryDate >= tenDaysAgo;
+    });
 
     return (
         <div className="container mx-auto max-w-7xl p-4 md:p-6 lg:p-8">
