@@ -5,7 +5,7 @@ import type { FoodEntry } from '@/lib/types';
 import FoodEntryForm from '@/components/food-entry-form';
 import DailySummary from '@/components/daily-summary';
 import FoodLog from '@/components/food-log';
-import { addFoodFromDescription, addFoodFromImage } from '@/app/actions';
+import { addFoodFromText, addFoodFromImage } from '@/app/actions';
 import { useToast } from "@/hooks/use-toast";
 
 export default function NutriSnapApp() {
@@ -19,12 +19,13 @@ export default function NutriSnapApp() {
 
     const handleTextSubmit = async (description: string) => {
         setIsLoading(true);
-        const result = await addFoodFromDescription(description);
+        const result = await addFoodFromText(description);
         if (result.error) {
             toast({ variant: "destructive", title: "Analysis Error", description: result.error });
         } else if (result.data) {
-            handleAddFoodEntries([result.data]);
-            toast({ title: "Food Added", description: `${result.data.name} has been added to your log.` });
+            handleAddFoodEntries(result.data);
+            const message = result.data.length > 1 ? `${result.data.length} items have been added.` : `${result.data[0].name} has been added.`;
+            toast({ title: "Food Added", description: message });
         }
         setIsLoading(false);
     };

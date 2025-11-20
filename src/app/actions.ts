@@ -2,13 +2,12 @@
 'use server';
 
 import { analyzeFoodItem } from '@/ai/flows/analyze-food-item';
-import { recognizeFoodFromImage } from '@/ai/flows/recognize-food-from-image';
 import type { FoodEntry } from '@/lib/types';
 import { z } from 'zod';
 
 const TextSchema = z.string().min(3, "Please enter a more descriptive food item.");
 
-export async function addFoodFromDescription(description: string): Promise<{ data?: FoodEntry; error?: string }> {
+export async function addFoodFromText(description: string): Promise<{ data?: FoodEntry[]; error?: string }> {
   const validation = TextSchema.safeParse(description);
   if (!validation.success) {
     return { error: validation.error.errors[0].message };
@@ -16,16 +15,21 @@ export async function addFoodFromDescription(description: string): Promise<{ dat
 
   try {
     const analysis = await analyzeFoodItem({ source: description });
-    const newEntry: FoodEntry = {
-      id: new Date().toISOString() + Math.random(),
-      name: analysis.foodItem,
-      calories: analysis.calories,
-      protein: analysis.protein,
-      carbs: analysis.carbs,
-      fats: analysis.fats,
+    if (!analysis.foodItems || analysis.foodItems.length === 0) {
+      return { error: 'Could not analyze food. The AI may not recognize this item. Please try again with a different description.' };
+    }
+
+    const newEntries: FoodEntry[] = analysis.foodItems.map((item, index) => ({
+      id: new Date().toISOString() + Math.random() + index,
+      name: item.name,
+      calories: item.calories,
+      protein: item.protein,
+      carbs: item.carbs,
+      fats: item.fats,
       createdAt: new Date().toISOString(),
-    };
-    return { data: newEntry };
+    }));
+
+    return { data: newEntries };
   } catch (e) {
     console.error(e);
     return { error: 'Could not analyze food. The AI may not recognize this item. Please try again with a different description.' };
@@ -41,21 +45,18 @@ export async function addFoodFromImage(photoDataUri: string): Promise<{ data?: F
     }
 
     try {
-        const recognition = await recognizeFoodFromImage({ photoDataUri });
-        if (!recognition.foodItems || recognition.foodItems.length === 0) {
+        const analysis = await analyzeFoodItem({ source: photoDataUri });
+        if (!analysis.foodItems || analysis.foodItems.length === 0) {
             return { error: "Could not recognize any food in the image. Please try a clearer image." };
         }
-
-        const analysisPromises = recognition.foodItems.map(food => analyzeFoodItem({ source: food.description }));
-        const analyses = await Promise.all(analysisPromises);
         
-        const newEntries: FoodEntry[] = analyses.map((analysis, index) => ({
+        const newEntries: FoodEntry[] = analysis.foodItems.map((item, index) => ({
             id: new Date().toISOString() + Math.random() + index,
-            name: analysis.foodItem,
-            calories: analysis.calories,
-            protein: analysis.protein,
-            carbs: analysis.carbs,
-            fats: analysis.fats,
+            name: item.name,
+            calories: item.calories,
+            protein: item.protein,
+            carbs: item.carbs,
+            fats: item.fats,
             createdAt: new Date().toISOString(),
         }));
 
@@ -66,3 +67,4 @@ export async function addFoodFromImage(photoDataUri: string): Promise<{ data?: F
         return { error: 'Could not analyze food from the image. Please try again.' };
     }
 }
+

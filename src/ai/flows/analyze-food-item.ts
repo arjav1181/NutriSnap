@@ -24,12 +24,17 @@ const AnalyzeFoodItemInputSchema = z.object({
 });
 export type AnalyzeFoodItemInput = z.infer<typeof AnalyzeFoodItemInputSchema>;
 
-const AnalyzeFoodItemOutputSchema = z.object({
-  foodItem: z.string().describe('The identified food item.'),
+
+const FoodItemNutritionalInfoSchema = z.object({
+  name: z.string().describe('The identified food item.'),
   calories: z.number().describe('The number of calories in the food item.'),
   protein: z.number().describe('The amount of protein in grams in the food item.'),
   carbs: z.number().describe('The amount of carbohydrates in grams in the food item.'),
   fats: z.number().describe('The amount of fat in grams in the food item.'),
+});
+
+const AnalyzeFoodItemOutputSchema = z.object({
+    foodItems: z.array(FoodItemNutritionalInfoSchema).describe('A list of food items identified and their nutritional information.'),
 });
 export type AnalyzeFoodItemOutput = z.infer<typeof AnalyzeFoodItemOutputSchema>;
 
@@ -43,14 +48,16 @@ const prompt = ai.definePrompt({
   output: {schema: AnalyzeFoodItemOutputSchema},
   prompt: `You are a world-class nutrition expert with specialized knowledge in international cuisines, including a deep understanding of Indian food.
 
-Your task is to analyze the provided food item and return its estimated nutritional information.
+Your task is to identify all distinct food items from the provided source and return their estimated nutritional information.
 
 When analyzing Indian food, be mindful of the following:
 - Regional Variations: A "samosa" in North India might differ from one in South India. Specify if you are making a regional assumption.
 - Ingredients: Common ingredients include lentils (dal), chickpeas (chana), paneer, various vegetables, and a wide array of spices.
 - Preparation: Cooking methods like frying, tandoori (clay oven), and curries with varying levels of oil and cream can significantly impact nutritional values.
 
-Please identify the food item from the source below, estimate the quantity (e.g., "1 bowl of dal tadka", "2 pieces of paneer tikka"), and then provide the nutritional information for that item and quantity.
+For each item, estimate the quantity (e.g., "1 bowl of dal tadka", "2 pieces of paneer tikka"), and then provide the nutritional information.
+
+If the source is a text description with multiple items, identify each one. If it is an image, identify all food items present.
 
 {{#if (startsWith source "data:")}}
   Image: {{media url=source}}
