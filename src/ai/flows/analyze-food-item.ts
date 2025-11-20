@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -40,10 +41,16 @@ const prompt = ai.definePrompt({
   name: 'analyzeFoodItemPrompt',
   input: {schema: AnalyzeFoodItemInputSchema},
   output: {schema: AnalyzeFoodItemOutputSchema},
-  prompt: `You are a nutrition expert. Analyze the following food item and provide its nutritional information.
+  prompt: `You are a nutrition expert. Analyze the provided food item and return its nutritional information.
 
-Food Item: {{#if (startsWith source "data:")}}{{media url=source}}{{#else}}{{{source}}}{{/if}}
+The food item is:
+{{#if (startsWith source "data:")}}
+  {{media url=source}}
+{{else}}
+  "{{{source}}}"
+{{/if}}
 
+Please identify the food item and estimate the quantity. Then, provide the nutritional information for that item and quantity.
 Respond in JSON format with the following keys: foodItem, calories, protein, carbs, fats.
 `,
 });
@@ -59,4 +66,3 @@ const analyzeFoodItemFlow = ai.defineFlow(
     return output!;
   }
 );
-

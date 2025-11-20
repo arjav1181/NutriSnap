@@ -1,3 +1,4 @@
+
 'use server';
 
 import { analyzeFoodItem } from '@/ai/flows/analyze-food-item';
@@ -45,11 +46,11 @@ export async function addFoodFromImage(photoDataUri: string): Promise<{ data?: F
             return { error: "Could not recognize any food in the image. Please try a clearer image." };
         }
 
-        const analysisPromises = recognition.foodItems.map(food => analyzeFoodItem({ source: food }));
+        const analysisPromises = recognition.foodItems.map(food => analyzeFoodItem({ source: food.description }));
         const analyses = await Promise.all(analysisPromises);
         
-        const newEntries: FoodEntry[] = analyses.map(analysis => ({
-            id: new Date().toISOString() + Math.random(),
+        const newEntries: FoodEntry[] = analyses.map((analysis, index) => ({
+            id: new Date().toISOString() + Math.random() + index,
             name: analysis.foodItem,
             calories: analysis.calories,
             protein: analysis.protein,

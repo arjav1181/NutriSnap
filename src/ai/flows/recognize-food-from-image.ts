@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview Recognizes food items from an image using GenAI.
@@ -19,8 +20,14 @@ const RecognizeFoodFromImageInputSchema = z.object({
 });
 export type RecognizeFoodFromImageInput = z.infer<typeof RecognizeFoodFromImageInputSchema>;
 
+
+const FoodItemSchema = z.object({
+    name: z.string().describe('The name of the identified food item (e.g., "slice of pizza", "banana").'),
+    description: z.string().describe('A detailed description of the food item, including quantity and any toppings or sides.'),
+});
+
 const RecognizeFoodFromImageOutputSchema = z.object({
-  foodItems: z.array(z.string()).describe('A list of food items identified in the image.'),
+  foodItems: z.array(FoodItemSchema).describe('A list of food items identified in the image.'),
 });
 export type RecognizeFoodFromImageOutput = z.infer<typeof RecognizeFoodFromImageOutputSchema>;
 
@@ -32,7 +39,19 @@ const prompt = ai.definePrompt({
   name: 'recognizeFoodFromImagePrompt',
   input: {schema: RecognizeFoodFromImageInputSchema},
   output: {schema: RecognizeFoodFromImageOutputSchema},
-  prompt: `You are an expert food recognition AI.  You will identify all the food items in the image.  Return a simple comma separated list of the food items you identify.  Do not include any introductory or concluding remarks. Do not specify any nutritional information. Only specify the list of food items.\n\nImage: {{media url=photoDataUri}}`,
+  prompt: `You are an expert food recognition AI. Your task is to identify all distinct food items in the provided image.
+
+For each item, provide a simple name and a more detailed description which includes an estimated quantity or serving size.
+
+For example, if you see a plate with eggs and bacon, you might return:
+[
+  { "name": "Scrambled Eggs", "description": "Two scrambled eggs" },
+  { "name": "Bacon Strips", "description": "Three strips of bacon" }
+]
+
+Do not provide any nutritional information.
+
+Image: {{media url=photoDataUri}}`,
 });
 
 const recognizeFoodFromImageFlow = ai.defineFlow(
@@ -43,8 +62,6 @@ const recognizeFoodFromImageFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await prompt(input);
-    return {
-      foodItems: output!.foodItems,
-    };
+    return output!;
   }
 );
