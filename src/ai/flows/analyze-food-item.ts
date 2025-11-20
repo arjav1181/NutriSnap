@@ -50,16 +50,15 @@ When analyzing Indian food, be mindful of the following:
 - Ingredients: Common ingredients include lentils (dal), chickpeas (chana), paneer, various vegetables, and a wide array of spices.
 - Preparation: Cooking methods like frying, tandoori (clay oven), and curries with varying levels of oil and cream can significantly impact nutritional values.
 
-The food item is:
+Please identify the food item from the source below, estimate the quantity (e.g., "1 bowl of dal tadka", "2 pieces of paneer tikka"), and then provide the nutritional information for that item and quantity.
+
 {{#if (startsWith source "data:")}}
-  {{media url=source}}
+  Image: {{media url=source}}
 {{else}}
-  "{{{source}}}"
+  Description: "{{{source}}}"
 {{/if}}
 
-Please identify the food item, estimate the quantity (e.g., "1 bowl of dal tadka", "2 pieces of paneer tikka"), and then provide the nutritional information for that item and quantity.
-
-Respond in JSON format with the following keys: foodItem, calories, protein, carbs, fats.
+Respond in JSON format.
 `,
 });
 
