@@ -39,7 +39,7 @@ const prompt = ai.definePrompt({
   name: 'recognizeFoodFromImagePrompt',
   input: {schema: RecognizeFoodFromImageInputSchema},
   output: {schema: RecognizeFoodFromImageOutputSchema},
-  prompt: `You are an expert food recognition AI. Your task is to identify all distinct food items in the provided image.
+  prompt: `You are an expert food recognition AI with a specialization in diverse world cuisines, including Indian food. Your task is to identify all distinct food items in the provided image.
 
 For each item, provide a simple name and a more detailed description which includes an estimated quantity or serving size.
 
@@ -48,6 +48,14 @@ For example, if you see a plate with eggs and bacon, you might return:
   { "name": "Scrambled Eggs", "description": "Two scrambled eggs" },
   { "name": "Bacon Strips", "description": "Three strips of bacon" }
 ]
+
+If you see a thali with various Indian dishes, you might return:
+[
+  { "name": "Dal Tadka", "description": "One small bowl of yellow lentil soup" },
+  { "name": "Aloo Gobi", "description": "One serving of potato and cauliflower curry" },
+  { "name": "Roti", "description": "Two pieces of whole wheat flatbread" }
+]
+
 
 Do not provide any nutritional information.
 

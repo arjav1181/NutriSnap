@@ -41,7 +41,14 @@ const prompt = ai.definePrompt({
   name: 'analyzeFoodItemPrompt',
   input: {schema: AnalyzeFoodItemInputSchema},
   output: {schema: AnalyzeFoodItemOutputSchema},
-  prompt: `You are a nutrition expert. Analyze the provided food item and return its nutritional information.
+  prompt: `You are a world-class nutrition expert with specialized knowledge in international cuisines, including a deep understanding of Indian food.
+
+Your task is to analyze the provided food item and return its estimated nutritional information.
+
+When analyzing Indian food, be mindful of the following:
+- Regional Variations: A "samosa" in North India might differ from one in South India. Specify if you are making a regional assumption.
+- Ingredients: Common ingredients include lentils (dal), chickpeas (chana), paneer, various vegetables, and a wide array of spices.
+- Preparation: Cooking methods like frying, tandoori (clay oven), and curries with varying levels of oil and cream can significantly impact nutritional values.
 
 The food item is:
 {{#if (startsWith source "data:")}}
@@ -50,7 +57,8 @@ The food item is:
   "{{{source}}}"
 {{/if}}
 
-Please identify the food item and estimate the quantity. Then, provide the nutritional information for that item and quantity.
+Please identify the food item, estimate the quantity (e.g., "1 bowl of dal tadka", "2 pieces of paneer tikka"), and then provide the nutritional information for that item and quantity.
+
 Respond in JSON format with the following keys: foodItem, calories, protein, carbs, fats.
 `,
 });
