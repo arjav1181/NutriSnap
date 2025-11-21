@@ -32,11 +32,11 @@ const openai = new OpenAI({
 });
 
 function toOpenAIMessages(messages: ChatWithDieticianInput['history']): OpenAI.Chat.Completions.ChatCompletionMessageParam[] {
-    // The system prompt is now managed separately, so we only map user and model roles.
+    // Map user, model, and assistant roles. The AI's responses will have the 'model' role from the client, which needs to be mapped to 'assistant'.
     return messages
-        .filter(msg => msg.role === 'user' || msg.role === 'model')
+        .filter(msg => msg.role === 'user' || msg.role === 'model' || msg.role === 'assistant')
         .map(msg => ({
-            role: msg.role as 'user' | 'assistant', // Cast 'model' to 'assistant' for OpenAI API
+            role: msg.role === 'model' ? 'assistant' : msg.role, // Cast 'model' to 'assistant' for OpenAI API
             content: msg.content[0].text,
     }));
 }
