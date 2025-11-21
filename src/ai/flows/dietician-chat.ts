@@ -53,7 +53,9 @@ const dieticianPrompt = ai.definePrompt(
 - Always be encouraging and positive.
 
 Here is the user's recent food log:
-{{{json foodEntries}}}
+{{#each foodEntries}}
+- {{this.name}} (Calories: {{this.calories}}, Protein: {{this.protein}}g, Carbs: {{this.carbs}}g, Fats: {{this.fats}}g)
+{{/each}}
 `,
     },
     (input) => { // This must be a synchronous function
