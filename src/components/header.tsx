@@ -45,7 +45,7 @@ const Header = () => {
           </Link>
            <nav className="flex gap-4">
                <Button variant="ghost" asChild>
-                   <Link href="/dietician" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+                   <Link href="/dietician">
                        <Sparkles className="mr-2 h-4 w-4" />
                        AI Dietician
                    </Link>
