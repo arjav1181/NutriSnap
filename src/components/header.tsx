@@ -43,7 +43,7 @@ const Header = () => {
               NutriSnap
             </h1>
           </Link>
-           <nav className="hidden md:flex gap-4">
+           <nav className="flex gap-4">
                <Button variant="ghost" asChild>
                    <Link href="/dietician" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
                        <Sparkles className="mr-2 h-4 w-4" />
@@ -75,12 +75,6 @@ const Header = () => {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                 <DropdownMenuItem asChild className="md:hidden">
-                    <Link href="/dietician">
-                        <Sparkles className="mr-2 h-4 w-4" />
-                        AI Dietician
-                    </Link>
-                </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleSignOut}>
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Log out</span>
