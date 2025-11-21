@@ -57,12 +57,6 @@ Here is the user's recent food log:
 - {{this.name}} (Calories: {{this.calories}}, Protein: {{this.protein}}g, Carbs: {{this.carbs}}g, Fats: {{this.fats}}g)
 {{/each}}
 `,
-    },
-    (input) => { // This must be a synchronous function
-        return {
-            history: input.history,
-            prompt: input.history.at(-1)?.content[0].text,
-        };
     }
 );
 
@@ -74,8 +68,9 @@ const dieticianChatFlow = ai.defineFlow(
     outputSchema: z.string(),
   },
   async (input) => {
-    const response = await dieticianPrompt(input);
-    // Use .text property instead of .text() method
+    const response = await dieticianPrompt(input, {
+        history: input.history,
+    });
     return response.text;
   }
 );
