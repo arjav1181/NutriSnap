@@ -10,13 +10,12 @@
  * - ChatWithDieticianOutput - The return type for the chatWithDietician function.
  */
 
-import { ai } from '@/ai/genkit';
+import OpenAI from 'openai';
 import { z } from 'zod';
 import { Message } from 'genkit';
 
-
 const ChatMessageSchema = z.object({
-  role: z.enum(['user', 'model']),
+  role: z.enum(['user', 'model', 'system']),
   content: z.array(z.object({ text: z.string() })),
 });
 
@@ -27,29 +26,42 @@ export type ChatWithDieticianInput = z.infer<typeof ChatWithDieticianInputSchema
 
 export type ChatWithDieticianOutput = string;
 
-export async function chatWithDietician(input: ChatWithDieticianInput): Promise<ChatWithDieticianOutput> {
-  return dieticianChatFlow(input);
+const openai = new OpenAI({
+  apiKey: process.env.GEMINI_API_KEY,
+  baseURL: 'https://generativelanguage.googleapis.com/v1beta',
+});
+
+function toOpenAIMessages(messages: ChatWithDieticianInput['history']): OpenAI.Chat.Completions.ChatCompletionMessageParam[] {
+    // The system prompt is now managed separately, so we only map user and model roles.
+    return messages
+        .filter(msg => msg.role === 'user' || msg.role === 'model')
+        .map(msg => ({
+            role: msg.role as 'user' | 'assistant', // Cast 'model' to 'assistant' for OpenAI API
+            content: msg.content[0].text,
+    }));
 }
 
-const dieticianChatFlow = ai.defineFlow(
-  {
-    name: 'dieticianChatFlow',
-    inputSchema: ChatWithDieticianInputSchema,
-    outputSchema: z.string(),
-  },
-  async (input) => {
-    const response = await ai.generate({
-      model: 'gemini-2.5-pro',
-      system: `You are an expert dietician with 20+ years of experience. You are a friendly and knowledgeable AI for the NutriSnap app. Your goal is to provide helpful and safe dietary advice.
+
+export async function chatWithDietician(input: ChatWithDieticianInput): Promise<ChatWithDieticianOutput> {
+  const systemPrompt: OpenAI.Chat.Completions.ChatCompletionMessageParam = {
+    role: 'system',
+    content: `You are an expert dietician with 20+ years of experience. You are a friendly and knowledgeable AI for the NutriSnap app. Your goal is to provide helpful and safe dietary advice.
 
 - IMPORTANT: NEVER give medical advice. If the user asks for medical advice, gently decline and recommend they consult a doctor.
 - You can answer general nutrition questions directly.
 - Keep your responses concise and easy to understand.
-- Always be encouraging and positive.
-`,
-      history: input.history as Message[],
-    });
+- Always be encouraging and positive.`
+  };
+  
+  const history = toOpenAIMessages(input.history);
 
-    return response.text;
-  }
-);
+  const response = await openai.chat.completions.create({
+    model: 'models/gemini-1.5-flash-latest',
+    messages: [
+      systemPrompt,
+      ...history
+    ],
+  });
+
+  return response.choices[0].message.content || 'I am sorry, I am having trouble responding right now.';
+}
