@@ -56,7 +56,7 @@ Here is the user's recent food log:
 {{{json foodEntries}}}
 `,
     },
-    async (input) => {
+    (input) => { // This must be a synchronous function
         return {
             history: input.history,
         };
@@ -72,6 +72,7 @@ const dieticianChatFlow = ai.defineFlow(
   },
   async (input) => {
     const response = await dieticianPrompt(input);
+    // Use .text property instead of .text() method
     return response.text;
   }
 );
