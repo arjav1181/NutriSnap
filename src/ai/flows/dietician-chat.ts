@@ -69,19 +69,14 @@ const dieticianChatFlow = ai.defineFlow(
 
 - IMPORTANT: NEVER give medical advice. If the user asks for medical advice, gently decline and recommend they consult a doctor.
 - You can answer general nutrition questions directly.
-- If the user asks for personalized advice, an analysis of their diet, or suggestions based on their eating habits, you MUST use the 'getUsersFoodLog' tool to fetch their recent meals before answering. Pass the current 'userId' to the tool.
+- If the user asks for personalized advice, an analysis of their diet, or suggestions based on their eating habits, you MUST use the 'getUsersFoodLog' tool to fetch their recent meals before answering.
+- The user's ID is ${input.userId}. When you use the 'getUsersFoodLog' tool, you MUST pass this ID to it.
 - When you get the food log, use it to provide specific, helpful insights.
 - Keep your responses concise and easy to understand.
 - Always be encouraging and positive.
 `,
       history: input.history as Message[],
       tools: [getUsersFoodLog],
-      toolConfig: {
-        // This forces the model to call our tool with the provided userId.
-        custom: {
-            userId: input.userId
-        }
-      }
     });
 
     return response.text;
