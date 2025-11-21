@@ -65,9 +65,9 @@ export async function addFoodFromImage(photoDataUri: string): Promise<{ data?: O
     }
 }
 
-export async function getDieticianResponse(history: Message[], userId: string) {
+export async function getDieticianResponse(history: Message[]) {
     try {
-        const response = await chatWithDietician({ history, userId });
+        const response = await chatWithDietician({ history });
         return { data: response };
     } catch (e) {
         console.error(e);

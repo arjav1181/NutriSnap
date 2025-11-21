@@ -58,7 +58,7 @@ export default function DieticianPage() {
     form.reset();
     setIsThinking(true);
 
-    const result = await getDieticianResponse(newHistory, user.uid);
+    const result = await getDieticianResponse(newHistory);
 
     setIsThinking(false);
 
