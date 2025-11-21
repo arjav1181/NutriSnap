@@ -1,5 +1,5 @@
 'use client';
-import { Leaf, LogOut, User as UserIcon } from 'lucide-react';
+import { Leaf, LogOut, User as UserIcon, Sparkles } from 'lucide-react';
 import React from 'react';
 import { useFirebase } from '@/firebase';
 import { Button } from '@/components/ui/button';
@@ -36,13 +36,21 @@ const Header = () => {
   return (
     <header className="border-b sticky top-0 z-40 w-full bg-background/95 backdrop-blur-sm">
       <div className="container flex h-16 items-center space-x-4 sm:justify-between sm:space-x-0 max-w-7xl mx-auto px-4 md:px-6">
-        <div className="flex gap-2 items-center">
+        <div className="flex gap-6 items-center">
           <Link href="/" className="flex items-center gap-2">
             <Leaf className="h-7 w-7 text-primary" />
             <h1 className="font-headline text-2xl font-bold text-foreground">
               NutriSnap
             </h1>
           </Link>
+           <nav className="hidden md:flex gap-4">
+               <Button variant="ghost" asChild>
+                   <Link href="/dietician" className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+                       <Sparkles className="mr-2 h-4 w-4" />
+                       AI Dietician
+                   </Link>
+               </Button>
+           </nav>
         </div>
         <div className="flex items-center gap-4">
           {isUserLoading ? (
@@ -67,6 +75,12 @@ const Header = () => {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                 <DropdownMenuItem asChild className="md:hidden">
+                    <Link href="/dietician">
+                        <Sparkles className="mr-2 h-4 w-4" />
+                        AI Dietician
+                    </Link>
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleSignOut}>
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Log out</span>

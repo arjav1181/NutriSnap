@@ -2,7 +2,10 @@
 'use server';
 
 import { analyzeFoodItem } from '@/ai/flows/analyze-food-item';
+import { chatWithDietician } from '@/ai/flows/dietician-chat';
+import { FoodEntry } from '@/lib/types';
 import { z } from 'zod';
+import { Message, Part } from 'genkit/experimental/ai';
 
 const TextSchema = z.string().min(3, "Please enter a more descriptive food item.");
 
@@ -60,5 +63,15 @@ export async function addFoodFromImage(photoDataUri: string): Promise<{ data?: O
     } catch (e) {
         console.error(e);
         return { error: 'Could not analyze food from the image. Please try again.' };
+    }
+}
+
+export async function getDieticianResponse(history: Message<Part>[], foodEntries: FoodEntry[]) {
+    try {
+        const response = await chatWithDietician({ history, foodEntries });
+        return { data: response };
+    } catch (e) {
+        console.error(e);
+        return { error: "I'm sorry, I'm having trouble responding right now. Please try again in a moment." };
     }
 }
