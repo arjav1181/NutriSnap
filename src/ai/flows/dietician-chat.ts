@@ -53,8 +53,14 @@ const dieticianChatFlow = ai.defineFlow(
     inputSchema: ChatWithDieticianInputSchema,
     outputSchema: z.string(),
   },
-  async ({ history, foodEntries }) => {
-    
+  async (input) => {
+    const foodLogContext = input.foodEntries
+      .map(
+        (entry) =>
+          `- ${entry.name} (Calories: ${entry.calories}, Protein: ${entry.protein}g, Carbs: ${entry.carbs}g, Fats: ${entry.fats}g)`
+      )
+      .join('\n');
+
     const response = await ai.generate({
       model: 'gemini-2.5-pro',
       system: `You are a friendly and knowledgeable AI Dietician for the NutriSnap app. Your goal is to provide helpful, safe, and personalized dietary advice.
@@ -65,9 +71,9 @@ const dieticianChatFlow = ai.defineFlow(
 - Always be encouraging and positive.
 
 Here is the user's recent food log:
-${foodEntries.map(entry => `- ${entry.name} (Calories: ${entry.calories}, Protein: ${entry.protein}g, Carbs: ${entry.carbs}g, Fats: ${entry.fats}g)`).join('\n')}
+${input.foodEntries.length > 0 ? foodLogContext : 'No food entries yet.'}
 `,
-      history: history as Message[],
+      history: input.history as Message[],
     });
 
     return response.text;
