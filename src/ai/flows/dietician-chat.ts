@@ -25,8 +25,16 @@ const FoodEntrySchema = z.object({
   createdAt: z.string(),
 });
 
+// A simplified schema for the chat history to avoid client/server type conflicts.
+const ChatHistorySchema = z.array(
+  z.object({
+    role: z.enum(['user', 'model']),
+    content: z.array(z.object({ text: z.string() })),
+  })
+);
+
 const ChatWithDieticianInputSchema = z.object({
-  history: z.array(z.custom<Message>()),
+  history: ChatHistorySchema,
   foodEntries: z.array(FoodEntrySchema).describe("The user's recent food log entries."),
 });
 export type ChatWithDieticianInput = z.infer<typeof ChatWithDieticianInputSchema>;
@@ -46,10 +54,9 @@ const dieticianChatFlow = ai.defineFlow(
     outputSchema: z.string(),
   },
   async ({ history, foodEntries }) => {
-
+    
     const response = await ai.generate({
       model: 'gemini-2.5-pro',
-      history: history,
       system: `You are a friendly and knowledgeable AI Dietician for the NutriSnap app. Your goal is to provide helpful, safe, and personalized dietary advice.
 
 - NEVER give medical advice. If the user asks for medical advice, gently decline and recommend they consult a doctor.
@@ -60,6 +67,7 @@ const dieticianChatFlow = ai.defineFlow(
 Here is the user's recent food log:
 ${foodEntries.map(entry => `- ${entry.name} (Calories: ${entry.calories}, Protein: ${entry.protein}g, Carbs: ${entry.carbs}g, Fats: ${entry.fats}g)`).join('\n')}
 `,
+      history: history as Message[],
     });
 
     return response.text;
