@@ -39,15 +39,13 @@ export async function chatWithDietician(input: ChatWithDieticianInput): Promise<
   return dieticianChatFlow(input);
 }
 
-const dieticianChatFlow = ai.defineFlow(
-  {
-    name: 'dieticianChatFlow',
-    inputSchema: ChatWithDieticianInputSchema,
-    outputSchema: z.string(),
-  },
-  async ({ history, foodEntries }) => {
 
-    const systemPrompt = `You are a friendly and knowledgeable AI Dietician for the NutriSnap app. Your goal is to provide helpful, safe, and personalized dietary advice.
+const dieticianPrompt = ai.definePrompt(
+    {
+      name: 'dieticianPrompt',
+      model: 'gemini-2.5-pro',
+      input: { schema: ChatWithDieticianInputSchema },
+      system: `You are a friendly and knowledgeable AI Dietician for the NutriSnap app. Your goal is to provide helpful, safe, and personalized dietary advice.
 
 - NEVER give medical advice. If the user asks for medical advice, gently decline and recommend they consult a doctor.
 - Use the provided food log to understand the user's eating habits.
@@ -55,15 +53,25 @@ const dieticianChatFlow = ai.defineFlow(
 - Always be encouraging and positive.
 
 Here is the user's recent food log:
-${foodEntries.length > 0 ? foodEntries.map(e => `- ${e.name} (${Math.round(e.calories)} kcal) on ${new Date(e.createdAt).toLocaleDateString()}`).join('\n') : 'No food entries logged yet.'}
-`;
+{{{json foodEntries}}}
+`,
+    },
+    async (input) => {
+        return {
+            history: input.history,
+        };
+    }
+);
 
-    const result = await ai.generate({
-      model: 'gemini-2.5-pro',
-      system: systemPrompt,
-      history: history,
-    });
 
-    return result.text;
+const dieticianChatFlow = ai.defineFlow(
+  {
+    name: 'dieticianChatFlow',
+    inputSchema: ChatWithDieticianInputSchema,
+    outputSchema: z.string(),
+  },
+  async (input) => {
+    const response = await dieticianPrompt(input);
+    return response.text;
   }
 );
