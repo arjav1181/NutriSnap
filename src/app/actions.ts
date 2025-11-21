@@ -5,7 +5,7 @@ import { analyzeFoodItem } from '@/ai/flows/analyze-food-item';
 import { chatWithDietician } from '@/ai/flows/dietician-chat';
 import { FoodEntry } from '@/lib/types';
 import { z } from 'zod';
-import { Message, Part } from 'genkit/experimental/ai';
+import { Message } from 'genkit';
 
 const TextSchema = z.string().min(3, "Please enter a more descriptive food item.");
 
@@ -66,7 +66,7 @@ export async function addFoodFromImage(photoDataUri: string): Promise<{ data?: O
     }
 }
 
-export async function getDieticianResponse(history: Message<Part>[], foodEntries: FoodEntry[]) {
+export async function getDieticianResponse(history: Message[], foodEntries: FoodEntry[]) {
     try {
         const response = await chatWithDietician({ history, foodEntries });
         return { data: response };

@@ -5,7 +5,7 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Message, Part } from 'genkit/experimental/ai';
+import { Message } from 'genkit';
 import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
 import { getDieticianResponse } from '@/app/actions';
 import { FoodEntry, FoodEntryData } from '@/lib/types';
@@ -32,7 +32,7 @@ type FormValues = z.infer<typeof formSchema>;
 
 export default function DieticianPage() {
   const { user, firestore, isUserLoading } = useFirebase();
-  const [chatHistory, setChatHistory] = useState<Message<Part>[]>([]);
+  const [chatHistory, setChatHistory] = useState<Message[]>([]);
   const [isThinking, setIsThinking] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
@@ -71,7 +71,7 @@ export default function DieticianPage() {
   const handleSubmit = async (values: FormValues) => {
     if (!foodEntries) return;
 
-    const userMessage: Message<Part> = { role: 'user', parts: [{ text: values.message }] };
+    const userMessage: Message = { role: 'user', content: [{ text: values.message }] };
     const newHistory = [...chatHistory, userMessage];
     setChatHistory(newHistory);
     form.reset();
@@ -82,10 +82,10 @@ export default function DieticianPage() {
     setIsThinking(false);
 
     if (result.data) {
-      const modelMessage: Message<Part> = { role: 'model', parts: [{ text: result.data }] };
+      const modelMessage: Message = { role: 'model', content: [{ text: result.data }] };
       setChatHistory([...newHistory, modelMessage]);
     } else {
-      const errorMessage: Message<Part> = { role: 'model', parts: [{ text: result.error || 'An unexpected error occurred.' }] };
+      const errorMessage: Message = { role: 'model', content: [{ text: result.error || 'An unexpected error occurred.' }] };
       setChatHistory([...newHistory, errorMessage]);
     }
   };
@@ -148,7 +148,7 @@ export default function DieticianPage() {
                         <div key={index} className={cn('flex items-start gap-3', msg.role === 'user' ? 'justify-end' : '')}>
                           {msg.role === 'model' && <Avatar className="h-8 w-8"><AvatarFallback><Bot className="w-5 h-5"/></AvatarFallback></Avatar>}
                           <div className={cn('rounded-lg p-3 max-w-[80%]', msg.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted')}>
-                            <p className="text-sm whitespace-pre-wrap">{msg.parts[0].text}</p>
+                            <p className="text-sm whitespace-pre-wrap">{msg.content[0].text}</p>
                           </div>
                           {msg.role === 'user' && <Avatar className="h-8 w-8"><AvatarFallback><User className="w-5 h-5"/></AvatarFallback></Avatar>}
                         </div>

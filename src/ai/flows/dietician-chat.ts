@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -10,7 +11,7 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'genkit';
-import { Message, Part } from 'genkit/experimental/ai';
+import { Message, Part } from 'genkit';
 
 // Schema for a single food entry, consistent with the app's types.
 const FoodEntrySchema = z.object({
@@ -24,15 +25,18 @@ const FoodEntrySchema = z.object({
   createdAt: z.string(),
 });
 
-// Zod schema for chat history part
-const PartSchema = z.object({
-  text: z.string(),
-});
-
 // Zod schema for a single chat message
 const MessageSchema = z.object({
-  role: z.enum(['user', 'model']),
-  parts: z.array(PartSchema),
+  role: z.enum(['user', 'model', 'tool']),
+  content: z.array(z.object({
+    text: z.string().optional(),
+    media: z.object({
+      url: z.string(),
+      contentType: z.string().optional(),
+    }).optional(),
+    toolRequest: z.any().optional(),
+    toolResponse: z.any().optional(),
+  })),
 });
 
 
@@ -72,7 +76,7 @@ ${foodEntries.length > 0 ? foodEntries.map(e => `- ${e.name} (${Math.round(e.cal
     const result = await ai.generate({
       model: 'gemini-2.5-pro',
       system: systemPrompt,
-      history: history as Message<Part>[],
+      history: history as Message[],
     });
 
     return result.text;
