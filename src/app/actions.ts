@@ -2,9 +2,7 @@
 'use server';
 
 import { analyzeFoodItem } from '@/ai/flows/analyze-food-item';
-import { chatWithDietician } from '@/ai/flows/dietician-chat';
 import { z } from 'zod';
-import { Message } from 'genkit';
 
 const TextSchema = z.string().min(3, "Please enter a more descriptive food item.");
 
@@ -65,12 +63,38 @@ export async function addFoodFromImage(photoDataUri: string): Promise<{ data?: O
     }
 }
 
-export async function getDieticianResponse(history: Message[]) {
-    try {
-        const response = await chatWithDietician({ history });
-        return { data: response };
-    } catch (e) {
-        console.error(e);
-        return { error: "I'm sorry, I'm having trouble responding right now. Please try again in a moment." };
+interface LyzrResponse {
+  response: {
+    message: string;
+  };
+}
+
+export async function getDieticianResponse(message: string): Promise<{ data?: string; error?: string }> {
+  try {
+    const response = await fetch('https://agent-prod.studio.lyzr.ai/v3/inference/chat/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': process.env.LYZR_API_KEY!,
+      },
+      body: JSON.stringify({
+        user_id: "arjav.3003jain@gmail.com",
+        agent_id: "69038e730c12dba4cbb869ca",
+        session_id: "69038e730c12dba4cbb869ca-19ulv04li6z",
+        message: message,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Lyzr API Error:', errorText);
+      throw new Error(`API request failed with status ${response.status}`);
     }
+
+    const result: LyzrResponse = await response.json();
+    return { data: result.response.message };
+  } catch (e: any) {
+    console.error(e);
+    return { error: "I'm sorry, I'm having trouble responding right now. Please try again in a moment." };
+  }
 }
