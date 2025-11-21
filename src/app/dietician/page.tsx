@@ -21,6 +21,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import Header from '@/components/header';
 import Link from 'next/link';
 import { LogIn } from 'lucide-react';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { cn } from '@/lib/utils';
 
 const formSchema = z.object({
   message: z.string().min(1, 'Message cannot be empty.'),
@@ -189,11 +191,3 @@ export default function DieticianPage() {
     </div>
   );
 }
-
-// Basic Avatar component placeholders for styling
-const Avatar: React.FC<{children: React.ReactNode, className?: string}> = ({ children, className }) => (
-    <div className={cn("flex-shrink-0 flex items-center justify-center bg-secondary rounded-full", className)}>
-        {children}
-    </div>
-)
-const AvatarFallback: React.FC<{children: React.ReactNode}> = ({ children }) => <>{children}</>
