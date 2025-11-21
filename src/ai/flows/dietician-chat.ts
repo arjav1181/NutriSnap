@@ -25,16 +25,13 @@ const FoodEntrySchema = z.object({
   createdAt: z.string(),
 });
 
-// A simplified schema for the chat history to avoid client/server type conflicts.
-const ChatHistorySchema = z.array(
-  z.object({
-    role: z.enum(['user', 'model']),
-    content: z.array(z.object({ text: z.string() })),
-  })
-);
+const ChatMessageSchema = z.object({
+  role: z.enum(['user', 'model']),
+  content: z.array(z.object({ text: z.string() })),
+});
 
 const ChatWithDieticianInputSchema = z.object({
-  history: ChatHistorySchema,
+  history: z.array(ChatMessageSchema),
   foodEntries: z.array(FoodEntrySchema).describe("The user's recent food log entries."),
 });
 export type ChatWithDieticianInput = z.infer<typeof ChatWithDieticianInputSchema>;
@@ -66,7 +63,8 @@ const dieticianChatFlow = ai.defineFlow(
       system: `You are a friendly and knowledgeable AI Dietician for the NutriSnap app. Your goal is to provide helpful, safe, and personalized dietary advice.
 
 - NEVER give medical advice. If the user asks for medical advice, gently decline and recommend they consult a doctor.
-- Use the provided food log to understand the user's eating habits.
+- Use the provided food log to understand the user's eating habits when they ask for suggestions about their diet.
+- You can also answer general nutrition questions.
 - Keep your responses concise and easy to understand.
 - Always be encouraging and positive.
 
