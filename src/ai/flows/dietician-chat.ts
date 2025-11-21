@@ -26,7 +26,7 @@ const FoodEntrySchema = z.object({
 });
 
 const ChatWithDieticianInputSchema = z.object({
-  history: z.custom<Message[]>(),
+  history: z.array(z.custom<Message>()),
   foodEntries: z.array(FoodEntrySchema).describe("The user's recent food log entries."),
 });
 export type ChatWithDieticianInput = z.infer<typeof ChatWithDieticianInputSchema>;
