@@ -25,20 +25,8 @@ const FoodEntrySchema = z.object({
   createdAt: z.string(),
 });
 
-// Zod schema for a single part of a message.
-const MessagePartSchema = z.object({
-  text: z.string(),
-});
-
-// Zod schema for a complete message.
-const MessageSchema = z.object({
-  role: z.enum(['user', 'model']),
-  content: z.array(MessagePartSchema),
-});
-
-
 const ChatWithDieticianInputSchema = z.object({
-  history: z.array(MessageSchema).describe('The chat history between the user and the AI.'),
+  history: z.custom<Message[]>(),
   foodEntries: z.array(FoodEntrySchema).describe("The user's recent food log entries."),
 });
 export type ChatWithDieticianInput = z.infer<typeof ChatWithDieticianInputSchema>;
@@ -72,7 +60,8 @@ Here is the user's recent food log:
     },
     (input) => { // This must be a synchronous function
         return {
-            history: input.history as Message[],
+            history: input.history,
+            prompt: input.history.at(-1)?.content[0].text,
         };
     }
 );
