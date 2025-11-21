@@ -16,13 +16,13 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import LoadingSpinner from '@/components/loading-spinner';
-import { Send, Sparkles, User, Bot } from 'lucide-react';
+import { Send, Sparkles, User, Bot, LogIn } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import Header from '@/components/header';
 import Link from 'next/link';
-import { LogIn } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
+
 
 const formSchema = z.object({
   message: z.string().min(1, 'Message cannot be empty.'),
@@ -145,9 +145,9 @@ export default function DieticianPage() {
                      </div>
                  ) : (
                     chatHistory.map((msg, index) => (
-                        <div key={index} className={`flex items-start gap-3 ${msg.role === 'user' ? 'justify-end' : ''}`}>
+                        <div key={index} className={cn('flex items-start gap-3', msg.role === 'user' ? 'justify-end' : '')}>
                           {msg.role === 'model' && <Avatar className="h-8 w-8"><AvatarFallback><Bot className="w-5 h-5"/></AvatarFallback></Avatar>}
-                          <div className={`rounded-lg p-3 max-w-[80%] ${msg.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+                          <div className={cn('rounded-lg p-3 max-w-[80%]', msg.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted')}>
                             <p className="text-sm whitespace-pre-wrap">{msg.parts[0].text}</p>
                           </div>
                           {msg.role === 'user' && <Avatar className="h-8 w-8"><AvatarFallback><User className="w-5 h-5"/></AvatarFallback></Avatar>}
