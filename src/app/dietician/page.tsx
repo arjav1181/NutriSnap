@@ -6,10 +6,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Message } from 'genkit';
-import { useFirebase, useCollection, useMemoFirebase } from '@/firebase';
+import { useFirebase } from '@/firebase';
 import { getDieticianResponse } from '@/app/actions';
-import { FoodEntry, FoodEntryData } from '@/lib/types';
-import { collection } from 'firebase/firestore';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -31,27 +29,10 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 export default function DieticianPage() {
-  const { user, firestore, isUserLoading } = useFirebase();
+  const { user, isUserLoading } = useFirebase();
   const [chatHistory, setChatHistory] = useState<Message[]>([]);
   const [isThinking, setIsThinking] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
-
-  const foodEntriesRef = useMemoFirebase(
-    () => (user && firestore ? collection(firestore, 'users', user.uid, 'foodEntries') : null),
-    [firestore, user]
-  );
-  const { data: foodEntriesData, isLoading: isLoadingEntries } = useCollection<FoodEntryData>(foodEntriesRef);
-
-  const foodEntries: FoodEntry[] | null = useMemo(() => {
-    if (!foodEntriesData) return null;
-    return foodEntriesData
-      .filter(entry => !!entry.createdAt) 
-      .map(entry => ({
-        ...entry,
-        createdAt: entry.createdAt.toDate().toISOString(),
-      }));
-  }, [foodEntriesData]);
-
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -69,7 +50,7 @@ export default function DieticianPage() {
   }, [chatHistory]);
 
   const handleSubmit = async (values: FormValues) => {
-    if (!foodEntries) return;
+    if (!user) return;
 
     const userMessage: Message = { role: 'user', content: [{ text: values.message }] };
     const newHistory = [...chatHistory, userMessage];
@@ -77,7 +58,7 @@ export default function DieticianPage() {
     form.reset();
     setIsThinking(true);
 
-    const result = await getDieticianResponse(newHistory, foodEntries);
+    const result = await getDieticianResponse(newHistory, user.uid);
 
     setIsThinking(false);
 
@@ -90,7 +71,7 @@ export default function DieticianPage() {
     }
   };
   
-    if (isUserLoading || (user && isLoadingEntries)) {
+    if (isUserLoading) {
         return (
             <div className="flex h-screen items-center justify-center">
                 <LoadingSpinner className="h-12 w-12 text-primary" />
@@ -141,7 +122,7 @@ export default function DieticianPage() {
                      <div className="text-center text-muted-foreground pt-16">
                          <Bot className="w-12 h-12 mx-auto mb-4" />
                          <p className="text-lg">Welcome! How can I help you with your diet today?</p>
-                         <p className="text-sm">Ask me anything about your food log or general nutrition.</p>
+                         <p className="text-sm">Ask me for diet suggestions or general nutrition questions.</p>
                      </div>
                  ) : (
                     chatHistory.map((msg, index) => (

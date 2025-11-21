@@ -3,7 +3,6 @@
 
 import { analyzeFoodItem } from '@/ai/flows/analyze-food-item';
 import { chatWithDietician } from '@/ai/flows/dietician-chat';
-import { FoodEntry } from '@/lib/types';
 import { z } from 'zod';
 import { Message } from 'genkit';
 
@@ -66,9 +65,9 @@ export async function addFoodFromImage(photoDataUri: string): Promise<{ data?: O
     }
 }
 
-export async function getDieticianResponse(history: Message[], foodEntries: FoodEntry[]) {
+export async function getDieticianResponse(history: Message[], userId: string) {
     try {
-        const response = await chatWithDietician({ history, foodEntries });
+        const response = await chatWithDietician({ history, userId });
         return { data: response };
     } catch (e) {
         console.error(e);
