@@ -25,6 +25,7 @@ const FoodEntrySchema = z.object({
   createdAt: z.string(),
 });
 
+// A simplified schema for chat messages coming from the client.
 const ChatMessageSchema = z.object({
   role: z.enum(['user', 'model']),
   content: z.array(z.object({ text: z.string() })),
