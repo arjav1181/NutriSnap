@@ -46,10 +46,6 @@ const dieticianChatFlow = ai.defineFlow(
     outputSchema: z.string(),
   },
   async ({ history, foodEntries }) => {
-    // Construct a readable string from the food entries
-    const foodLogContext = foodEntries.map(entry => 
-        `- ${entry.name} (Calories: ${entry.calories}, Protein: ${entry.protein}g, Carbs: ${entry.carbs}g, Fats: ${entry.fats}g)`
-    ).join('\n');
 
     const response = await ai.generate({
       model: 'gemini-2.5-pro',
@@ -62,7 +58,7 @@ const dieticianChatFlow = ai.defineFlow(
 - Always be encouraging and positive.
 
 Here is the user's recent food log:
-${foodLogContext}
+${foodEntries.map(entry => `- ${entry.name} (Calories: ${entry.calories}, Protein: ${entry.protein}g, Carbs: ${entry.carbs}g, Fats: ${entry.fats}g)`).join('\n')}
 `,
     });
 
