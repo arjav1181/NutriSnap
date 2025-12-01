@@ -62,39 +62,3 @@ export async function addFoodFromImage(photoDataUri: string): Promise<{ data?: O
         return { error: 'Could not analyze food from the image. Please try again.' };
     }
 }
-
-interface LyzrResponse {
-  response: {
-    message: string;
-  };
-}
-
-export async function getDieticianResponse(message: string): Promise<{ data?: string; error?: string }> {
-  try {
-    const response = await fetch('https://agent-prod.studio.lyzr.ai/v3/inference/chat/', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': 'sk-default-H7ja39EThHTiNh5mSAgr1fGY5IL7Gi7R',
-      },
-      body: JSON.stringify({
-        user_id: "arjav.3003jain@gmail.com",
-        agent_id: "69038e730c12dba4cbb869ca",
-        session_id: "69038e730c12dba4cbb869ca-19ulv04li6z",
-        message: message,
-      }),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Lyzr API Error:', errorText);
-      throw new Error(`API request failed with status ${response.status}`);
-    }
-
-    const result: LyzrResponse = await response.json();
-    return { data: result.response.message };
-  } catch (e: any) {
-    console.error(e);
-    return { error: "I'm sorry, I'm having trouble responding right now. Please try again in a moment." };
-  }
-}

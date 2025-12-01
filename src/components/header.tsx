@@ -1,5 +1,5 @@
 'use client';
-import { Leaf, LogOut, User as UserIcon, Sparkles } from 'lucide-react';
+import { Leaf, LogOut, User as UserIcon } from 'lucide-react';
 import React from 'react';
 import { useFirebase } from '@/firebase';
 import { Button } from '@/components/ui/button';
@@ -43,14 +43,6 @@ const Header = () => {
               NutriSnap
             </h1>
           </Link>
-           <nav className="flex gap-4">
-               <Button variant="ghost" asChild>
-                   <Link href="/dietician">
-                       <Sparkles className="mr-2 h-4 w-4" />
-                       AI Dietician
-                   </Link>
-               </Button>
-           </nav>
         </div>
         <div className="flex items-center gap-4">
           {isUserLoading ? (
