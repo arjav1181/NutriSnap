@@ -75,7 +75,7 @@ export async function getDieticianResponse(message: string): Promise<{ data?: st
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': process.env.LYZR_API_KEY!,
+        'x-api-key': 'sk-default-H7ja39EThHTiNh5mSAgr1fGY5IL7Gi7R',
       },
       body: JSON.stringify({
         user_id: "arjav.3003jain@gmail.com",
